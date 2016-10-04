@@ -1,10 +1,10 @@
-{application, emqttd_auth_mysql,
+{application, emqttd_auth_riak,
  [
-  {description, "emqttd Authentication/ACL with MySQL"},
+  {description, "emqttd Authentication/ACL with Riak"},
   {vsn, "2.0"},
   {modules, []},
   {registered, []},
-  {applications, [kernel, stdlib, lager, mysql, ecpool, jsx]},
-  {mod, {emqttd_auth_mysql_app, []}},
+  {applications, [kernel, stdlib, lager, ecpool, jsx]},
+  {mod, {emqttd_auth_riak_app, []}},
   {env, []}
  ]}.

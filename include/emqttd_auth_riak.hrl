@@ -1,6 +1,5 @@
 
--define(APP, emqttd_auth_mysql).
--define(APP1, emqttd_auth_riak).
+-define(APP, emqttd_auth_riak).
 
 
 -record(superquery, {
@@ -14,6 +13,7 @@
   bucket = <<"user">>,
   field      = <<"username">>,
   password_field = <<"password">>,
+  clientid_field = <<"clientid">>,
   hash       = sha256
 }
 ).

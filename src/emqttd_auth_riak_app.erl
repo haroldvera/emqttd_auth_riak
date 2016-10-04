@@ -14,13 +14,12 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emqttd_auth_mysql_app).
+-module(emqttd_auth_riak_app).
 
 -behaviour(application).
 
--include("emqttd_auth_mysql.hrl").
+-include("emqttd_auth_riak.hrl").
 
--import(emqttd_auth_mysql_client, [parse_query/1]).
 -import(emqttd_riak_client, [parse_query_riak/1]).
 
 %% Application callbacks
@@ -36,11 +35,7 @@ start(_StartType, _StartArgs) ->
     gen_conf:init(?APP),
     %gen_conf:init(?APP1),
 
-    {ok, Sup} = emqttd_auth_mysql_sup:start_link(),
-    SuperQuery = parse_query(gen_conf:value(?APP, superquery, undefined)),
-
-    ok = register_auth_mod(SuperQuery),
-    ok = register_acl_mod(SuperQuery),
+    {ok, Sup} = emqttd_auth_riak_sup:start_link(),
     ok = register_auth_mod_riak(),
     ok = register_acl_mode_riak(),
     {ok, Sup}.
@@ -52,26 +47,14 @@ register_acl_mode_riak() ->
     emqttd_access_control:register_mod(acl, emqttd_acl_riak, AclEnv).
 
 register_auth_mod_riak() ->
-    SuperQueryRiak = emqttd_auth_riak:config(superqueryriak), AuthQueryRiak = emqttd_auth_riak:config(authqueryriak),
+    SuperQueryRiak = emqttd_auth_riak:config(superqueryriak),
+    AuthQueryRiak = emqttd_auth_riak:config(authqueryriak),
     emqttd_access_control:register_mod(auth, emqttd_auth_riak, [SuperQueryRiak, AuthQueryRiak]).
 
-register_auth_mod(SuperQuery) ->
-    {ok, AuthQuery} = gen_conf:value(?APP, authquery),
-    {ok, HashType}  = gen_conf:value(?APP, password_hash),
-    AuthEnv = {SuperQuery, parse_query(AuthQuery), HashType},
-    emqttd_access_control:register_mod(auth, emqttd_auth_mysql, AuthEnv).
-
-register_acl_mod(SuperQuery) ->
-    with_acl_enabled(fun(AclQuery) ->
-        {ok, AclNomatch} = gen_conf:value(?APP, acl_nomatch),
-        AclEnv = {SuperQuery, parse_query(AclQuery), AclNomatch},
-        emqttd_access_control:register_mod(acl, emqttd_acl_mysql, AclEnv)
-    end).
-
 prep_stop(State) ->
-    emqttd_access_control:unregister_mod(auth, emqttd_auth_mysql),
+    emqttd_access_control:unregister_mod(auth, emqttd_auth_riak),
     with_acl_enabled(fun(_AclQuery) ->
-        emqttd_access_control:unregister_mod(acl, emqttd_acl_mysql)
+        emqttd_access_control:unregister_mod(acl, emqttd_acl_riak)
     end),
     State.
 
