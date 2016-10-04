@@ -21,7 +21,7 @@
 -define(PID, emqttd_auth_mysql).
 
 -include_lib("emqttd/include/emqttd.hrl").
-
+-compile([{parse_transform, lager_transform}]).
 %%setp1 init table
 -define(DROP_ACL_TABLE, <<"DROP TABLE IF EXISTS mqtt_acl">>).
 
@@ -66,15 +66,18 @@ all() ->
 
 groups() -> 
     [{emqttd_auth_mysql, [sequence],
-     [check_acl,
-      check_auth]}].
+     [
+      check_auth, check_acl]}].
 
 init_per_suite(Config) ->
     DataDir = proplists:get_value(data_dir, Config),
-    application:start(lager),
+    %application:start(lager),
+    application:start(riakc),
     application:set_env(emqttd, conf, filename:join([DataDir, "emqttd.conf"])),
     application:ensure_all_started(emqttd),
     application:set_env(emqttd_auth_mysql, conf, filename:join([DataDir, "emqttd_auth_mysql.conf"])),
+    application:set_env(emqttd_auth_riak, conf, filename:join([DataDir, "emqttd_auth_mysql.conf"])),
+    application:set_env(lager, conf, filename:join([DataDir, "emqttd_auth_mysql.conf"])),
     application:ensure_all_started(emqttd_auth_mysql),
     Config.
 
@@ -83,51 +86,36 @@ end_per_suite(_Config) ->
     application:stop(ecpool),
     application:stop(mysql),
     application:stop(emqttd),
+    application:stop(riakc),
     emqttd_mnesia:ensure_stopped().
 
 check_acl(_) ->
-    init_acl_(),
-    User1 = #mqtt_client{client_id = <<"client1">>, username = <<"testuser">>},
-    User2 = #mqtt_client{client_id = <<"client2">>, username = <<"xyz">>},
-    allow = emqttd_access_control:check_acl(User1, subscribe, <<"users/testuser/1">>),
-    allow = emqttd_access_control:check_acl(User2, subscribe, <<"a/b/c">>),
+    User1 = #mqtt_client{client_id = <<"harold">>, username = <<"harold">>},
+    User2 = #mqtt_client{client_id = <<"erick">>, username = <<"erick">>},
+    allow = emqttd_access_control:check_acl(User1, subscribe, <<"deliver/finished">>),
+    allow = emqttd_access_control:check_acl(User2, publish, <<"deliver/finished">>),
     deny  = emqttd_access_control:check_acl(User1, subscribe, <<"$SYS/testuser/1">>),
-    deny  = emqttd_access_control:check_acl(User2, subscribe, <<"$SYS/testuser/1">>),
-    drop_table_(?DROP_ACL_TABLE).
+    lager:info("erick test acl ~p",[emqttd_access_control:check_acl(User2, subscribe, <<"$SYS/testuser/1">>)]),
+    allow  = emqttd_access_control:check_acl(User2, subscribe, <<"$SYS/testuser/1">>). %is superuser
 
 
-init_acl_() ->
-    {ok, Pid} = ecpool_worker:client(gproc_pool:pick_worker({ecpool, ?PID})),
-    ok = mysql:query(Pid, ?DROP_ACL_TABLE),
-    ok = mysql:query(Pid, ?CREATE_ACL_TABLE),
-    ok = mysql:query(Pid, ?INIT_ACL).
+
 
 check_auth(_) ->
-    init_auth_(), 
-    User1 = #mqtt_client{client_id = <<"client1">>, username = <<"testuser1">>},
+    User1 = #mqtt_client{client_id = <<"harold">>, username = <<"harold">>},
 
-    User2 = #mqtt_client{client_id = <<"client2">>, username = <<"testuser2">>},
+    User2 = #mqtt_client{client_id = <<"erick">>, username = <<"erick">>},
     
     User3 = #mqtt_client{client_id = <<"client3">>},
-    ok = emqttd_access_control:auth(User1, <<"pass1">>),
-    {error, _} = emqttd_access_control:auth(User1, <<"pass">>),
+    ok = emqttd_access_control:auth(User1, <<"1231231">>),
+    {error, _} = emqttd_access_control:auth(User1, <<"123">>),
     {error, password_undefined} = emqttd_access_control:auth(User1, <<>>),
-    
-    ok = emqttd_access_control:auth(User2, <<"pass2">>),
+    {error, password_error} = emqttd_access_control:auth(User1, <<"errorpwd">>),
+
+    ok = emqttd_access_control:auth(User2, <<"123123">>),
     ok = emqttd_access_control:auth(User2, <<>>),
-    ok = emqttd_access_control:auth(User2, <<"errorpwd">>),
-    
-    
-    {error, _} = emqttd_access_control:auth(User3, <<"pwd">>),
-    drop_table_(?DROP_AUTH_TABLE).
 
-init_auth_() ->
-    {ok, Pid} = ecpool_worker:client(gproc_pool:pick_worker({ecpool, ?PID})),
-    ok = mysql:query(Pid, ?DROP_AUTH_TABLE),
-    ok = mysql:query(Pid, ?CREATE_AUTH_TABLE),
-    ok = mysql:query(Pid, ?INIT_AUTH).
+    
+    {error, _} = emqttd_access_control:auth(User3, <<"pwd">>).
 
-drop_table_(Tab) ->
-    {ok, Pid} = ecpool_worker:client(gproc_pool:pick_worker({ecpool, ?PID})),
-    ok = mysql:query(Pid, Tab).
 

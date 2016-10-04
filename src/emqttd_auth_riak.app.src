@@ -4,7 +4,7 @@
   {vsn, "2.0"},
   {modules, []},
   {registered, []},
-  {applications, [kernel, stdlib, mysql, ecpool]},
+  {applications, [kernel, stdlib, lager, mysql, ecpool, jsx]},
   {mod, {emqttd_auth_mysql_app, []}},
   {env, []}
  ]}.

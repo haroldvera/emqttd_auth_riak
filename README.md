@@ -113,3 +113,4 @@ Author
 
 Feng Lee <feng@emqtt.io>.
 
+# emqttd_auth_riak

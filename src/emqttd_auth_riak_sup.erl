@@ -21,10 +21,9 @@
 -behaviour(supervisor).
 
 -export([start_link/0]).
-
+-compile([{parse_transform, lager_transform}]).
 %% Supervisor callbacks
 -export([init/1]).
-
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
@@ -34,7 +33,10 @@ start_link() ->
 
 init([]) ->
     %% MySQL Connection Pool.
-    {ok, PoolEnv} = gen_conf:value(?APP, mysql_pool),
-    PoolSpec = ecpool:pool_spec(?APP, ?APP, emqttd_auth_mysql_client, PoolEnv),
-    {ok, {{one_for_one, 10, 100}, [PoolSpec]}}.
+    %{ok, PoolEnv} = gen_conf:value(?APP, mysql_pool),
+    %PoolSpec = ecpool:pool_spec(?APP, ?APP, emqttd_auth_mysql_client, PoolEnv),
+    {ok, PoolEnvRiak} = gen_conf:value(?APP, riak_pool),
+    PoolSpecRiak = ecpool:pool_spec(?APP1, ?APP1, emqttd_riak_client, PoolEnvRiak),
+    lager:info("pool spec riak ~p", [PoolSpecRiak]),
+    {ok, {{one_for_one, 10, 100}, [PoolSpecRiak]}}.
 
