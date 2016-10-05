@@ -1,4 +1,3 @@
-
 -define(APP, emqttd_auth_riak).
 
 

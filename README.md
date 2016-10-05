@@ -57,10 +57,10 @@ Load Test Database Riak Document
 
 ```
 
-curl -X POST http://localhost:8098/riak/user -H "x-riak-index-idx_username_bin: user1" -d '
+curl -X POST http://192.168.0.6:8098/riak/user/user1 -H "x-riak-index-idx_username_bin: user1" -d '
  {
    "username":"user1",
-   "password":"123123"
+   "password":"123123",
    "groups" : ["SPUTNIK_EMAILER"],
    "clientid":"edfrddd-dfffesdff",
    "pubsub" : ["deliver/new","deliver/cancel"],
@@ -68,10 +68,10 @@ curl -X POST http://localhost:8098/riak/user -H "x-riak-index-idx_username_bin: 
  }
 '
 
-curl -X POST http://localhost:8098/riak/user -H "x-riak-index-idx_username_bin: user2" -d '
+curl -X POST http://192.168.0.6:8098/riak/user/user2 -H "x-riak-index-idx_username_bin: user2" -d '
  {
    "username":"user2",
-   "password":"123"
+   "password":"123",
    "clientid":"ggfrddd-dfffesdgg",
    "groups" : ["SPUTNIK_ADMINISTRATOR","SPUTNIK_EMAILER"],
    "pubsub" : ["deliver/new","deliver/cancel"],

@@ -54,7 +54,7 @@ config(authqueryriak) ->
   with_env(authqueryriak, fun(Config) ->
     #authquery{
       bucket = list_to_binary(get_value(bucket, Config, "user")),
-      field      = list_to_binary(get_value(field, Config, "password")),
+      field      = list_to_binary(get_value(field, Config, "idx_username")),
       password_field      = list_to_binary(get_value(password_field, Config, "password")),
       clientid_field      = list_to_binary(get_value(clientid_field, Config, "clientid")),
       hash       = get_value(password_hash, Config, sha256)
@@ -181,7 +181,7 @@ check_superuser(Obj, SuperuserField, SuperuserId) ->
   end.
 
 query(Bucket, Field, Username) ->
-  lager:info("field ~p",[Field]),
+  lager:info("field ~p ~p ~p",[Bucket, Field, Username]),
   ecpool:with_client(
     ?APP,
     fun(Conn) ->
