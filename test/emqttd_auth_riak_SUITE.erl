@@ -35,8 +35,8 @@ end_per_suite(_Config) ->
     emqttd_mnesia:ensure_stopped().
 
 check_acl(_) ->
-    User1 = #mqtt_client{client_id = <<"harold">>, username = <<"harold">>},
-    User2 = #mqtt_client{client_id = <<"erick">>, username = <<"erick">>},
+    User1 = #mqtt_client{username = <<"user1">>},
+    User2 = #mqtt_client{username = <<"user2">>},
     allow = emqttd_access_control:check_acl(User1, subscribe, <<"deliver/finished">>),
     allow = emqttd_access_control:check_acl(User2, publish, <<"deliver/finished">>),
     deny  = emqttd_access_control:check_acl(User1, subscribe, <<"$SYS/testuser/1">>),
@@ -46,11 +46,11 @@ check_acl(_) ->
 
 
 check_auth(_) ->
-    User1 = #mqtt_client{username = <<"harold">>},
-    UserClientId1 = #mqtt_client{username = <<"harold">>, client_id = <<"fail">>},
-    UserClientId2 = #mqtt_client{username = <<"harold">>, client_id = <<"89fgcfee-1522-11e6-9c63">>},
-    User2 = #mqtt_client{username = <<"erick">>},
-    User3 = #mqtt_client{client_id = <<"client3">>},
+    User1 = #mqtt_client{username = <<"user1">>},
+    UserClientId1 = #mqtt_client{username = <<"user1">>, client_id = <<"fail">>},
+    UserClientId2 = #mqtt_client{username = <<"user1">>, client_id = <<"edfrddd-dfffesdff">>},
+    User2 = #mqtt_client{username = <<"user2">>},
+    User3 = #mqtt_client{client_id = <<"user3">>},
     ok = emqttd_access_control:auth(User1, <<"1231231">>),
     {error, _} = emqttd_access_control:auth(User1, <<"123">>),
     {error, password_undefined} = emqttd_access_control:auth(User1, <<>>),
