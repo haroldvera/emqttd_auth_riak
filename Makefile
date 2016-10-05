@@ -2,11 +2,15 @@ PROJECT = emqttd_auth_riak
 PROJECT_DESCRIPTION = emqttd Authentication/ACL against MySQL
 PROJECT_VERSION = 2.0
 
-DEPS =  ecpool gen_conf emqttd riakc lager jsx
+DEPS =  ecpool gen_conf riakc jsx
 
 dep_ecpool   = git https://github.com/emqtt/ecpool master
 dep_emqttd   = git https://github.com/emqtt/emqttd emq20
 dep_gen_conf = git https://github.com/emqtt/gen_conf master
+
+
+BUILD_DEPS = emqttd
+dep_emqttd = git https://github.com/emqtt/emqttd master
 
 ERLC_OPTS += +'{parse_transform, lager_transform}'
 
