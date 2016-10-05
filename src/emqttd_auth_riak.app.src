@@ -4,7 +4,7 @@
   {vsn, "2.0"},
   {modules, []},
   {registered, []},
-  {applications, [kernel, stdlib, lager, ecpool, jsx]},
+  {applications, [kernel, stdlib, lager, gen_conf, ecpool, jsx]},
   {mod, {emqttd_auth_riak_app, []}},
   {env, []}
  ]}.
