@@ -105,7 +105,7 @@ check(#mqtt_client{username = Username}, Password, #state{superquery = SuperQuer
 
 
 check(#mqtt_client{username = Username, client_id = ClientId}, Password, #state{superquery = SuperQuery,authquery = AuthQuery})
-  when not ?EMPTY(Password) ->
+   ->
   #authquery{bucket = Bucket, field = Field, clientid_field = ClientIdField,
     password_field = PassworldField} = AuthQuery,
   #superquery{super_field = SuperuserField, super_value = SuperuserID} = SuperQuery,
