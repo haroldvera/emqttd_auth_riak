@@ -89,17 +89,7 @@ check(#mqtt_client{username = Username}, _Password, _State) when ?EMPTY(Username
   {error, username_undefined};
 
 
-check(#mqtt_client{username = Username, client_id = ClientId}, _, #state{superquery = SuperQuery,authquery = AuthQuery})
-  when not ?EMPTY(ClientId) ->
-  lager:info("client id ~p",[ClientId]),
-  #authquery{bucket = Bucket, field = Field, clientid_field = ClientIdField} = AuthQuery,
-  #superquery{super_field = SuperuserField, super_value = SuperuserID} = SuperQuery,
-  User = query(Bucket, Field, Username),
-  lager:notice("user no pass ~p", [User]),
-  case check_superuser(User, SuperuserField, SuperuserID) of
-    false -> check_clientid(User, ClientIdField, ClientId);
-    _ -> ok
-  end ;
+
 
 check(#mqtt_client{username = Username}, Password, #state{superquery = SuperQuery,authquery = AuthQuery})
   when ?EMPTY(Password) ->
@@ -113,7 +103,9 @@ check(#mqtt_client{username = Username}, Password, #state{superquery = SuperQuer
   end ;
 
 
-check(#mqtt_client{username = Username}, Password, #state{superquery = SuperQuery,authquery = AuthQuery}) ->
+
+check(#mqtt_client{username = Username}, Password, #state{superquery = SuperQuery,authquery = AuthQuery})
+  when not ?EMPTY(Password) ->
   #authquery{bucket = Bucket, field = Field,
     password_field = PassworldField} = AuthQuery,
   #superquery{super_field = SuperuserField, super_value = SuperuserID} = SuperQuery,
@@ -122,8 +114,19 @@ check(#mqtt_client{username = Username}, Password, #state{superquery = SuperQuer
   case check_superuser(User, SuperuserField, SuperuserID) of
     false ->  check_pass(User, PassworldField, Password);
     true  -> ok
-  end.
+  end;
 
+check(#mqtt_client{username = Username, client_id = ClientId}, _, #state{superquery = SuperQuery,authquery = AuthQuery})
+  ->
+  lager:info("client id ~p",[ClientId]),
+  #authquery{bucket = Bucket, field = Field, clientid_field = ClientIdField} = AuthQuery,
+  #superquery{super_field = SuperuserField, super_value = SuperuserID} = SuperQuery,
+  User = query(Bucket, Field, Username),
+  lager:notice("user no pass ~p", [User]),
+  case check_superuser(User, SuperuserField, SuperuserID) of
+    false ->  check_clientid(User, ClientIdField, ClientId);
+    _ -> ok
+  end.
 
 hash(Type, Password) ->
   emqttd_auth_mod:passwd_hash(Type, Password).
